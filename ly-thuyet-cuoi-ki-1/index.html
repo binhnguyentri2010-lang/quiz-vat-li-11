@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trắc nghiệm lý thuyết Vật lí 11 – Cuối kì I</title>
+<style>
+:root{--bg:#0f172a;--card:#1e293b;--line:#334155;--txt:#e2e8f0;--mut:#94a3b8;--pri:#38bdf8;--ok:#22c55e;--bad:#ef4444}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--txt);line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding:16px}
+h1{font-size:1.35rem;margin:8px 0 4px}
+.sub{color:var(--mut);margin:0 0 16px;font-size:.95rem}
+a{color:var(--pri)}
+.grid{display:grid;gap:12px}
+.lesson{display:block;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;text-decoration:none;color:var(--txt)}
+.lesson:hover{border-color:var(--pri)}
+.lesson b{font-size:1.05rem}
+.lesson small{display:block;color:var(--mut)}
+.pill{display:inline-block;background:#0b3a53;color:var(--pri);border-radius:99px;padding:1px 10px;font-size:.8rem;margin-left:6px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.bar{height:6px;background:var(--line);border-radius:9px;overflow:hidden;margin:6px 0 14px}
+.bar>i{display:block;height:100%;background:var(--pri);width:0}
+.q{font-size:1.08rem;font-weight:600;margin:0 0 4px}
+.src{color:var(--mut);font-size:.8rem;margin-bottom:12px}
+.opt{display:flex;gap:10px;width:100%;text-align:left;background:#0b1220;color:var(--txt);border:1.5px solid var(--line);border-radius:12px;padding:11px 12px;margin:8px 0;font-size:1rem;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--pri)}
+.opt .k{font-weight:700;color:var(--pri);min-width:1.2em}
+.opt.ok{border-color:var(--ok);background:#052e16}
+.opt.bad{border-color:var(--bad);background:#3b0a0a}
+.opt:disabled{cursor:default}
+.btn{background:var(--pri);color:#04263a;border:0;border-radius:10px;padding:10px 16px;font-weight:700;font-size:1rem;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.choose{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.choose button{background:#0b1220;color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer;font-size:.95rem}
+.choose button.on{border-color:var(--pri);color:var(--pri)}
+label.chk{display:flex;gap:8px;align-items:center;color:var(--mut);margin:6px 0}
+.big{font-size:2.2rem;font-weight:800;margin:6px 0}
+.rv{border-top:1px solid var(--line);padding:10px 0}
+.rv .a{color:var(--ok)} .rv .w{color:var(--bad)}
+.foot{color:var(--mut);font-size:.8rem;margin-top:22px}
+kbd{border:1px solid var(--line);border-radius:4px;padding:0 4px;font-size:.8rem}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script src="data.js"></script>
+<script>
+const LESSONS=[
+ {id:'b8',hash:'bai-8',name:'Bài 8 – Mô tả sóng'},
+ {id:'b9',hash:'bai-9',name:'Bài 9 – Sóng ngang. Sóng dọc. Sự truyền năng lượng của sóng cơ'},
+ {id:'b11',hash:'bai-11',name:'Bài 11 – Sóng điện từ'},
+ {id:'b12',hash:'bai-12',name:'Bài 12 – Giao thoa sóng (sóng cơ + ánh sáng)'},
+ {id:'b13',hash:'bai-13',name:'Bài 13 – Sóng dừng'},
+];
+const app=document.getElementById('app');
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const WKEY='ly11ck1-wrong';
+const getWrong=()=>{try{return JSON.parse(localStorage.getItem(WKEY))||{}}catch(e){return {}}};
+const setWrong=w=>{try{localStorage.setItem(WKEY,JSON.stringify(w))}catch(e){}};
+const allQs=()=>LESSONS.flatMap(l=>DATA[l.id].map(q=>({...q,lesson:l.id})));
+let S=null;
+
+function home(){
+  const w=getWrong(),nW=Object.keys(w).length;
+  app.innerHTML=`<h1>Trắc nghiệm lý thuyết Vật lí 11 – Cuối kì I</h1>
+  <p class="sub">Chỉ gồm các câu lý thuyết lọc từ đề cương. Chọn một bài để làm; câu hỏi và đáp án được trộn mỗi lần.</p>
+  <div class="grid">
+  ${LESSONS.map(l=>`<a class="lesson" href="#${l.hash}"><b>${l.name}</b><span class="pill">${DATA[l.id].length} câu</span></a>`).join('')}
+  <a class="lesson" href="#tat-ca"><b>Trộn tất cả các bài</b><span class="pill">${allQs().length} câu</span><small>Ôn tổng hợp trước khi thi</small></a>
+  <a class="lesson" href="#cau-sai"><b>Ôn lại các câu hay sai</b><span class="pill">${nW} câu</span><small>Tự lưu trên máy này khi bạn làm sai; làm đúng thì câu sẽ được bỏ khỏi danh sách</small></a>
+  </div>
+  <p class="foot">Mẹo: dùng phím <kbd>1</kbd>–<kbd>4</kbd> hoặc <kbd>A</kbd>–<kbd>D</kbd> để chọn, <kbd>Enter</kbd> để sang câu tiếp.</p>`;
+}
+
+function setup(title,pool,hash){
+  let n=Math.min(20,pool.length),shuf=true;
+  const render=()=>{
+    const sizes=[10,20,30,pool.length].filter((v,i,a)=>v<=pool.length&&a.indexOf(v)===i);
+    app.innerHTML=`<p><a href="#">← Chọn bài khác</a></p><div class="card">
+    <h1>${title}</h1><p class="sub">${pool.length} câu lý thuyết</p>
+    ${pool.length?`<div>Số câu muốn làm:</div>
+    <div class="choose">${sizes.map(v=>`<button data-n="${v}" class="${v===n?'on':''}">${v===pool.length?'Tất cả ('+v+')':v+' câu'}</button>`).join('')}</div>
+    <label class="chk"><input type="checkbox" id="shuf" ${shuf?'checked':''}> Trộn thứ tự câu hỏi</label>
+    <div class="row"><button class="btn" id="go">Bắt đầu</button></div>`:`<p>Chưa có câu nào ở đây. Làm bài khác trước nhé.</p>`}</div>`;
+    app.querySelectorAll('[data-n]').forEach(b=>b.onclick=()=>{n=+b.dataset.n;render()});
+    const sh=document.getElementById('shuf');if(sh)sh.onchange=e=>shuf=e.target.checked;
+    const g=document.getElementById('go');if(g)g.onclick=()=>start(title,pool,n,shuf,hash);
+  };
+  render();
+}
+
+function start(title,pool,n,shuf,hash){
+  const picked=(shuf?shuffle(pool):pool).slice(0,n).map(q=>{
+    const order=shuffle([0,1,2,3]);
+    return {...q,opts:order.map(i=>q.o[i]),ans:order.indexOf(q.a)};
+  });
+  S={title,hash,pool,qs:picked,i:0,score:0,picks:[]};
+  showQ();
+}
+
+function showQ(){
+  const q=S.qs[S.i];
+  app.innerHTML=`<p><a href="#">← Thoát</a></p><div class="card">
+  <div class="top"><b>${S.title}</b><span>Câu ${S.i+1}/${S.qs.length} · Đúng ${S.score}</span></div>
+  <div class="bar"><i style="width:${S.i/S.qs.length*100}%"></i></div>
+  <p class="q">${esc(q.q)}</p><div class="src">Nguồn: ${q.src}</div>
+  ${q.opts.map((o,k)=>`<button class="opt" data-k="${k}"><span class="k">${'ABCD'[k]}.</span><span>${esc(o)}</span></button>`).join('')}
+  <div class="row" id="nx"></div></div>`;
+  app.querySelectorAll('.opt').forEach(b=>b.onclick=()=>pick(+b.dataset.k));
+}
+
+function pick(k){
+  if(S.picks[S.i]!==undefined)return;
+  const q=S.qs[S.i];S.picks[S.i]=k;
+  const w=getWrong();
+  if(k===q.ans){S.score++;delete w[q.id]}else{w[q.id]=(w[q.id]||0)+1}
+  setWrong(w);
+  app.querySelectorAll('.opt').forEach((b,j)=>{b.disabled=true;if(j===q.ans)b.classList.add('ok');else if(j===k)b.classList.add('bad')});
+  document.querySelector('.top span').textContent=`Câu ${S.i+1}/${S.qs.length} · Đúng ${S.score}`;
+  const last=S.i===S.qs.length-1;
+  document.getElementById('nx').innerHTML=`<span style="color:${k===q.ans?'var(--ok)':'var(--bad)'};font-weight:700">${k===q.ans?'Chính xác!':'Chưa đúng – đáp án đúng là '+'ABCD'[q.ans]}</span>
+  <button class="btn" id="next" style="margin-left:auto">${last?'Xem kết quả':'Câu tiếp →'}</button>`;
+  document.getElementById('next').onclick=next;
+}
+function next(){if(S.i<S.qs.length-1){S.i++;showQ()}else result()}
+
+function result(){
+  const wrong=S.qs.filter((q,i)=>S.picks[i]!==q.ans);
+  const pct=Math.round(S.score/S.qs.length*100);
+  app.innerHTML=`<p><a href="#">← Chọn bài khác</a></p><div class="card">
+  <b>${S.title}</b><div class="big">${S.score}/${S.qs.length} <span style="font-size:1rem;color:var(--mut)">(${pct}%)</span></div>
+  <div class="row">${wrong.length?`<button class="btn" id="redo">Làm lại ${wrong.length} câu sai</button>`:''}
+  <button class="btn ghost" id="again">Làm lượt mới</button></div>
+  ${wrong.length?`<h3>Các câu làm sai</h3>`+wrong.map(q=>{const i=S.qs.indexOf(q);return `<div class="rv"><div>${esc(q.q)}</div>
+  <div class="w">Bạn chọn: ${'ABCD'[S.picks[i]]}. ${esc(q.opts[S.picks[i]])}</div><div class="a">Đáp án: ${'ABCD'[q.ans]}. ${esc(q.opts[q.ans])}</div></div>`}).join(''):'<p>Đúng hết, giỏi lắm! 🎉</p>'}
+  </div>`;
+  const r=document.getElementById('redo');if(r)r.onclick=()=>start(S.title+' – câu sai',wrong.map(q=>({id:q.id,src:q.src,q:q.q,o:q.o,a:q.a})),wrong.length,true,S.hash);
+  document.getElementById('again').onclick=()=>{location.hash='';location.hash=S.hash};
+}
+
+document.addEventListener('keydown',e=>{
+  if(!S||!document.querySelector('.opt'))return;
+  const m={'1':0,'2':1,'3':2,'4':3,a:0,b:1,c:2,d:3}[e.key.toLowerCase()];
+  if(m!==undefined)pick(m);
+  else if(e.key==='Enter'){const n=document.getElementById('next');if(n)n.click()}
+});
+
+function route(){
+  S=null;window.scrollTo(0,0);
+  const h=location.hash.slice(1);
+  const l=LESSONS.find(x=>x.hash===h);
+  if(l)return setup(l.name,DATA[l.id],h);
+  if(h==='tat-ca')return setup('Trộn tất cả các bài',allQs(),h);
+  if(h==='cau-sai'){const w=getWrong();return setup('Ôn lại các câu hay sai',allQs().filter(q=>w[q.id]),h)}
+  home();
+}
+window.addEventListener('hashchange',route);route();
+</script>
+</body>
+</html>
